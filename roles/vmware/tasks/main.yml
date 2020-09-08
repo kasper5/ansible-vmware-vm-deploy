@@ -1,0 +1,14 @@
+---
+
+- include: ./ipam.yml
+  tags:
+    - deploy
+
+- include: ./provision.yml
+  tags:
+    - deploy
+
+- include: ./puppetagent.yml
+  when: osid == "centos64Guest"
+  tags:
+    - deploy

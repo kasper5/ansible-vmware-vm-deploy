@@ -1,0 +1,40 @@
+- name: create a virtual machine from a template.
+  vmware_guest:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    name: "{{ vm_name }}"
+    state: poweredon
+    datacenter: "{{ datacenter }}"
+    template: "{{ template_name }}"
+    resource_pool: "{{ resource_pool }}"
+    folder: "{{ folder }}"
+    guest_id: "{{ osid }}"
+    datastore: "{{ datastore_name }}"
+    hardware:
+      memory_mb: "{{ vm_mem_mb }}"
+      num_cpus: "{{ vm_cpu }}"
+    networks:
+      - name: "{{ vm_vlan }}"
+  delegate_to: localhost
+  register: provision
+
+- include: ./wait.yml
+
+- name: add custom attributes for new virtual machine.
+  vmware_guest_custom_attributes:
+    validate_certs: no
+    name: "{{ vm_name }}"
+    state: present
+    attributes:
+      - name: EnvironmentType
+        value: Production
+  delegate_to: localhost
+
+- include: ./hostname.yml
+  when: osid == "centos64Guest"
+
+- include: ./resizeswap.yml
+  when: osid == "centos64Guest"
+
+- include: ./network.yml
+  when: osid == "centos64Guest"

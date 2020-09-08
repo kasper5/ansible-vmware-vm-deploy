@@ -1,0 +1,25 @@
+---
+
+- name: reboot vm.
+  vmware_guest_powerstate:
+    validate_certs: no
+    folder: "{{ folder }}"
+    name: "{{ vm_name }}"
+    state: reboot-guest
+  delegate_to: localhost
+
+- name: wait for vm to reboot.
+  pause:
+    seconds: 30
+
+- name: gather facts from vm using the vSphere API output schema.
+  vmware_guest_facts:
+    validate_certs: no
+    datacenter: "{{ datacenter }}"
+    name: "{{ vm_name }}"
+  delegate_to: localhost
+  register: vm_info
+
+- debug: var={{ vm_info }}
+
+- include: ./wait.yml

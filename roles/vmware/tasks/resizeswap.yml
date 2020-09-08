@@ -1,0 +1,67 @@
+- name: swapoff swap.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /sbin/swapoff
+    vm_shell_args: " -v /dev/mapper/rootvg-swap "
+    vm_shell_env:
+      - "PATH=/bin:/sbin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+  register: swapoff_output
+
+- name: extend swap volume.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /sbin/lvextend
+    vm_shell_args: " -L+{{ swap_resize_gb }}G /dev/mapper/rootvg-swap "
+    vm_shell_env:
+      - "PATH=/bin:/sbin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+  register: swap_extend_output
+
+- name: make swap volume.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /sbin/mkswap
+    vm_shell_args: " /dev/mapper/rootvg-swap "
+    vm_shell_env:
+      - "PATH=/bin:/sbin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+  register: mk_sawp_output
+
+- name: swapon swap.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /sbin/swapon
+    vm_shell_args: " -va "
+    vm_shell_env:
+      - "PATH=/bin:/sbin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+  register: swapon_output

@@ -1,0 +1,16 @@
+---
+
+- name: copy mount.sh file to vm.
+  vmware_guest_file_operation:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    copy:
+        src: roles/vmware/files/mount.sh
+        dest: "/root/mount.sh"
+        overwrite: False
+  delegate_to: localhost

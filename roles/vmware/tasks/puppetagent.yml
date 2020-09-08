@@ -1,0 +1,50 @@
+- name: 1st puppet run.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /opt/puppetlabs/bin/puppet
+    vm_shell_args: " agent --test --verbose --debug --no-daemonize --waitforcert 0 >> /root/puppet_first_time.log 2>&1 "
+    vm_shell_env:
+      - "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/puppetlabs/bin:/root/bin"
+      - "SHELL=/bin/bash"
+    vm_shell_cwd: "/root"
+    wait_for_process: yes
+  delegate_to: localhost
+  ignore_errors: yes # first puppet run for requesting certificate exits with a non 0 exit code.
+
+- name: wait for puppet agent to request a certificate
+  pause:
+    seconds: 60
+
+- name: sign puppet certificate.
+  uri:
+    url: "https://{{ puppetmaster }}:8140/v1/certificate_status/{{ vm_name }}"
+    method: PUT
+    body: {"desired_state":"signed"}
+    body_format: json
+    status_code: 204
+    validate_certs: no
+
+- name: 2nd puppet run.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /opt/puppetlabs/bin/puppet
+    vm_shell_args: " agent --test --verbose --debug --no-daemonize --waitforcert 0 >> /root/puppet_second_time.log 2>&1 "
+    vm_shell_env:
+      - "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/puppetlabs/bin:/root/bin"
+      - "SHELL=/bin/bash"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+
+- include: ./mount.yml

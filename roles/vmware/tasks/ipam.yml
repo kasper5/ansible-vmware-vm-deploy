@@ -1,0 +1,11 @@
+---
+
+- name: allocate ip address in netbox.
+  netbox_ip_address:
+    netbox_url: https://netbox.local
+    netbox_token: 9dc62025lc3fc60e9b437192b4N2bb7f2f0db039
+    validate_certs: no
+    data:
+      address: "{{ vm_ip }}"
+      description: "{{ vm_name }} (Created with Ansible)"
+    state: present

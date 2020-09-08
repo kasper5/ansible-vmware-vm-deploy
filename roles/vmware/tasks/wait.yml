@@ -1,0 +1,8 @@
+---
+
+- name: wait for VMware tools to become available.
+  vmware_guest_tools_wait:
+    validate_certs: no
+    name: "{{ vm_name }}"
+    folder: "{{ folder }}"
+  delegate_to: localhost

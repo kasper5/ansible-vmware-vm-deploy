@@ -1,0 +1,38 @@
+---
+
+- name: make sure correct ifcfg file exists for main interface.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /bin/mv
+    vm_shell_args: "-f /etc/sysconfig/network-scripts/ifcfg-en* /etc/sysconfig/network-scripts/ifcfg-$(/usr/bin/basename -a /sys/class/net/* | /usr/bin/grep -v lo)"
+    vm_shell_env:
+      - "PATH=/bin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+  when: osid == "centos64Guest"
+
+- name: set ip, netmask, gateway, dns and boot values in ifcfg file.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /usr/bin/sed
+    vm_shell_args: " -i -e 's/NAME=.*/NAME='\"$(/usr/bin/basename -a /sys/class/net/* | /usr/bin/grep -v lo)\"'/g; s/DEVICE=.*/DEVICE='\"$(/usr/bin/basename -a /sys/class/net/* | /usr/bin/grep -v lo)\"'/g; s/IPADDR=.*/IPADDR={{ vm_ip }}/g; s/NETMASK=.*/NETMASK={{ vm_netmask }}/g; s/GATEWAY=.*/GATEWAY={{ vm_gateway }}/g; s/DNS1=.*/DNS1={{ vm_dns }}/g; s/ONBOOT=.*/ONBOOT=yes/g' /etc/sysconfig/network-scripts/ifcfg-$(/usr/bin/basename -a /sys/class/net/* | /usr/bin/grep -v lo) "
+    vm_shell_env:
+      - "PATH=/bin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+  when: osid == "centos64Guest"
+
+# reboot vm after network changes.
+- include: ./reboot.yml

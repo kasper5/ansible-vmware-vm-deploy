@@ -1,0 +1,7 @@
+---
+
+- name: VMware.
+  hosts: vmware
+  connection: local
+  roles:
+    - vmware

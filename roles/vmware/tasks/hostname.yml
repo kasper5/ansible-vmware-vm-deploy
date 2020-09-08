@@ -1,0 +1,30 @@
+---
+
+- name: set hostname in /etc/hostname.
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: /bin/echo
+    vm_shell_args: " {{ vm_name }} > /etc/hostname "
+    vm_shell_env:
+      - "PATH=/bin"
+    vm_shell_cwd: "/root"
+  delegate_to: localhost
+
+- name: change hostname
+  vmware_vm_shell:
+    validate_certs: no
+    cluster: "{{ cluster_name }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    vm_id: "{{ vm_name }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    vm_shell: "/usr/bin/hostnamectl"
+    vm_shell_args: "set-hostname {{ vm_name}} > /tmp/$$.txt 2>&1"
+  delegate_to: localhost
